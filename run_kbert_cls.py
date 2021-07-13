@@ -296,7 +296,8 @@ def main():
         spo_files = []
     else:
         spo_files = [args.kg_name]
-    kg = KnowledgeGraph(spo_files=spo_files, predicate=True)
+    # kg = KnowledgeGraph(spo_files=spo_files, predicate=True)
+    kg = KnowledgeGraph(spo_files=spo_files)
 
     def read_dataset(path, workers_num=1):
 

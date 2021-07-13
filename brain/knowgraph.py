@@ -6,6 +6,7 @@ import os
 import brain.config as config
 import pkuseg
 import numpy as np
+import jieba
 
 
 class KnowledgeGraph(object):
@@ -49,7 +50,8 @@ class KnowledgeGraph(object):
                 visible_matrix_batch - list of visible matrixs
                 seg_batch - list of segment tags
         """
-        split_sent_batch = [self.tokenizer.cut(sent) for sent in sent_batch]
+        # split_sent_batch = [self.tokenizer.cut(sent) for sent in sent_batch]
+        split_sent_batch = [self.jieba.cut(sent) for sent in sent_batch]
         know_sent_batch = []
         position_batch = []
         visible_matrix_batch = []
