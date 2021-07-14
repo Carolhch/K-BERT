@@ -9,10 +9,10 @@ import logging
 #logging.basicConfig(level=logging.INFO)
 
 class BertEmbedding():
-	def __init__(self,model_name='chinese_wwm_ext_pytorch'):
+	def __init__(self,model_name):
 		# Load pre-trained model tokenizer (vocabulary)
-		self.tokenizer = BertTokenizer.from_pretrained(self.get_model_dir(model_name))
-		self.model = BertModel.from_pretrained(self.get_model_dir(model_name), output_hidden_states = True,) # Whether the model returns all hidden-states.
+		self.tokenizer = BertTokenizer.from_pretrained(model_name)
+		self.model = BertModel.from_pretrained(model_name, output_hidden_states = True,) # Whether the model returns all hidden-states.
 		self.model.eval()
 		
 
@@ -74,10 +74,12 @@ class BertEmbedding():
 		return cosine_similarity
 
 if __name__=="__main__":
-	BE = BertEmbedding()
-	input1 = '皇后'
-	input2 = '國王'
+	BE = BertEmbedding(model_name='../models/chinese_wwm_ext_pytorch')
+	input1 = '苹果'
+	input2 = '苹果公司'
+	input3 = '水果'
 	ans = BE.similarity([input1,input2])
+	ans2 = BE.similarity([input1,input3])
 	print(ans)
-
+	print(ans2)
 

@@ -76,17 +76,35 @@ class KnowledgeGraph(object):
             pos_idx = -1
             abs_idx = -1
             abs_idx_src = []
-            for token in split_sent:
+            for sent_index, token in enumerate(split_sent):
 
                 # entities = list(self.lookup_table.get(token, []))[:max_entities]
-                entities = list(self.lookup_table.get(token, []))
+                lookup_keys = self.lookup_table.keys()
+                lookuped_word = [word for word in lookup_keys if token in word]
+                entitiy_li = self.lookup_table[x] for x in lookuped_word
+                entities =[]
+                for li in entitiy_li:
+                    entities.extend(li)
+
 
                 #check similarity for entities
                 #get 0.85 > enetities > 0.4 similarity
                 tmp_entities = []
+                pre_token = ''
+                post_token = ''
+                if sent_index > 0:
+                    pre_token = split_sent[sent_index-1]
+                if sent_index < len(split_sent)-1:
+                    post_token = split_sent[sent_index+1]
                 for entity in entities:
-                    similarity_score = self.embedding.similarity([token,entity])
-                    if 0.4 < similarity_score < 0.85:
+                    similarity_score = 0
+                    if pre_token:
+                        similarity_score += self.embedding.similarity([pre_token,entity])*0.2
+                    if post_token:
+                        similarity_score += self.embedding.similarity([post_token,entity])*0.2
+                    similarity_score += self.embedding.similarity([token, entity])*0.6
+                    # similarity_score = self.embedding.similarity([token,entity])
+                    if 0.3 < similarity_score < 0.85:
                         tmp_entities,append(entity)
                 if tmp_entities:
                     entities = tmp_entities[:max_entiites]
