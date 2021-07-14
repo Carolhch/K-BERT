@@ -24,7 +24,7 @@ class KnowledgeGraph(object):
     spo_files - list of Path of *.spo files, or default kg name. e.g., ['HowNet']
     """
 
-    def __init__(self, spo_files, embedding_type:str,folder_name:str,predicate=False):
+    def __init__(self, spo_files,embedding_type:str,folder_name:str, predicate=False):
         self.predicate = predicate
         self.spo_file_paths = [config.KGS.get(f, f) for f in spo_files]
         self.lookup_table = self._create_lookup_table()
@@ -39,7 +39,8 @@ class KnowledgeGraph(object):
         for spo_path in self.spo_file_paths:
             print("[KnowledgeGraph] Loading spo from {}".format(spo_path))
             with open(spo_path, 'r', encoding='utf-8') as f:
-                for line in f:
+                for i,line in enumerate(f):
+                    if i >200 :break
                     try:
                         subj, pred, obje = line.strip().split("\t")    
                     except:

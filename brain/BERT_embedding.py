@@ -24,11 +24,11 @@ class BertEmbedding():
 		inputs_embedding = []
 		for input_word in input_words:
 			tokenized_input_word = self.Tokenize(input_word)
-			input_word_ids = self.Convert_to_id(tokenized_input_word)
-			input_word_seg = self.Get_segement(len(tokenized_input_word))
-			hidden_states = self.Get_hidden_states(input_word_ids,input_word_seg)
-			token_embeddings = self.Remove_batch_layer(hidden_states) #torch.Size([13, num oftokens, 768])
-			final_embedding = self.Get_sentence_embedding(token_embeddings)
+			input_word_ids       = self.Convert_to_id(tokenized_input_word)
+			input_word_seg       = self.Get_segement(len(tokenized_input_word))
+			hidden_states        = self.Get_hidden_states(input_word_ids,input_word_seg)
+			token_embeddings     = self.Remove_batch_layer(hidden_states) #torch.Size([13, num oftokens, 768])
+			final_embedding      = self.Get_sentence_embedding(token_embeddings)
 			inputs_embedding.append(final_embedding)
 		return self.Get_cosine_similarity(inputs_embedding)
 

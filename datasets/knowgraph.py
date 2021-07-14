@@ -12,9 +12,7 @@ import torch
 from transformers import BertTokenizer, BertModel
 from scipy.spatial.distance import cosine
 
-from brain.embedding_factory import EmbeddingFactory
-from os.path import dirname
-
+from embedding_factory import EmbeddingFactory
 
 
 
@@ -23,15 +21,14 @@ class KnowledgeGraph(object):
     """
     spo_files - list of Path of *.spo files, or default kg name. e.g., ['HowNet']
     """
-
-    def __init__(self, spo_files, embedding_type:str,folder_name:str,predicate=False):
+    def __init__(self,spo_files, embedding_type:str,folder_name:str, predicate=False):
         self.predicate = predicate
         self.spo_file_paths = [config.KGS.get(f, f) for f in spo_files]
         self.lookup_table = self._create_lookup_table()
         self.segment_vocab = list(self.lookup_table.keys()) + config.NEVER_SPLIT_TAG
         self.tokenizer = pkuseg.pkuseg(model_name="default", postag=False, user_dict=self.segment_vocab)
         self.special_tags = set(config.NEVER_SPLIT_TAG)
-        self.embedding = EmbeddingFactory(embedding_type,folder_name).embedding
+        self.embedding = EmbeddingFactory(embedding_type,folder_name)
         
 
     def _create_lookup_table(self):
@@ -39,7 +36,8 @@ class KnowledgeGraph(object):
         for spo_path in self.spo_file_paths:
             print("[KnowledgeGraph] Loading spo from {}".format(spo_path))
             with open(spo_path, 'r', encoding='utf-8') as f:
-                for line in f:
+                for index, line in enumerate(f):
+                    if index > 200: breal
                     try:
                         subj, pred, obje = line.strip().split("\t")    
                     except:
@@ -109,7 +107,7 @@ class KnowledgeGraph(object):
                     if 0.3 < similarity_score < 0.85:
                         tmp_entities.append(entity)
                 if tmp_entities:
-                    entities = tmp_entities[:max_entities]
+                    entities = tmp_entities[:max_entiites]
                 elif entities:
                     entities = entities[:max_entities]
 

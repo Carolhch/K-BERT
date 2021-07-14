@@ -20,7 +20,11 @@ from uer.model_saver import save_model
 from brain import KnowledgeGraph
 from multiprocessing import Process, Pool
 import numpy as np
-
+from brain.embedding_factory import EmbeddingFactory
+from brain.word_embedding_skip_gram import Word2Vec
+from brain.word_vectors_Chinese_Word_Vectors import ChineseWordVector
+from os.path import dirname
+import os
 
 class BertClassifier(nn.Module):
     def __init__(self, args, model):
@@ -75,71 +79,72 @@ def add_knowledge_worker(params):
             print("Progress of process {}: {}/{}".format(p_id, line_id, sentences_num))
             sys.stdout.flush()
         line = line.strip().split('\t')
-        try:
-            if len(line) == 2:
-                label = int(line[columns["label"]])
-                text = CLS_TOKEN + line[columns["text_a"]]
-   
-                tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
-                tokens = tokens[0]
-                pos = pos[0]
-                vm = vm[0].astype("bool")
+        # try:
+        if len(line) == 2:
+            label = int(line[columns["label"]])
+            text = CLS_TOKEN + line[columns["text_a"]]
 
-                token_ids = [vocab.get(t) for t in tokens]
-                mask = [1 if t != PAD_TOKEN else 0 for t in tokens]
+            tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
+            tokens = tokens[0]
+            pos = pos[0]
+            vm = vm[0].astype("bool")
 
-                dataset.append((token_ids, label, mask, pos, vm))
+            token_ids = [vocab.get(t) for t in tokens]
+            mask = [1 if t != PAD_TOKEN else 0 for t in tokens]
+
+            dataset.append((token_ids, label, mask, pos, vm))
+        
+        elif len(line) == 3:
+            label = int(line[columns["label"]])
+            text = CLS_TOKEN + line[columns["text_a"]] + SEP_TOKEN + line[columns["text_b"]] + SEP_TOKEN
+
+            tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
+            tokens = tokens[0]
+            pos = pos[0]
+            vm = vm[0].astype("bool")
+
+            token_ids = [vocab.get(t) for t in tokens]
+            mask = []
+            seg_tag = 1
+            for t in tokens:
+                if t == PAD_TOKEN:
+                    mask.append(0)
+                else:
+                    mask.append(seg_tag)
+                if t == SEP_TOKEN:
+                    seg_tag += 1
+
+            dataset.append((token_ids, label, mask, pos, vm))
+        
+        elif len(line) == 4:  # for dbqa
+            qid=int(line[columns["qid"]])
+            label = int(line[columns["label"]])
+            text_a, text_b = line[columns["text_a"]], line[columns["text_b"]]
+            text = CLS_TOKEN + text_a + SEP_TOKEN + text_b + SEP_TOKEN
+
+            tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
+            tokens = tokens[0]
+            pos = pos[0]
+            vm = vm[0].astype("bool")
+
+            token_ids = [vocab.get(t) for t in tokens]
+            mask = []
+            seg_tag = 1
+            for t in tokens:
+                if t == PAD_TOKEN:
+                    mask.append(0)
+                else:
+                    mask.append(seg_tag)
+                if t == SEP_TOKEN:
+                    seg_tag += 1
             
-            elif len(line) == 3:
-                label = int(line[columns["label"]])
-                text = CLS_TOKEN + line[columns["text_a"]] + SEP_TOKEN + line[columns["text_b"]] + SEP_TOKEN
-
-                tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
-                tokens = tokens[0]
-                pos = pos[0]
-                vm = vm[0].astype("bool")
-
-                token_ids = [vocab.get(t) for t in tokens]
-                mask = []
-                seg_tag = 1
-                for t in tokens:
-                    if t == PAD_TOKEN:
-                        mask.append(0)
-                    else:
-                        mask.append(seg_tag)
-                    if t == SEP_TOKEN:
-                        seg_tag += 1
-
-                dataset.append((token_ids, label, mask, pos, vm))
+            dataset.append((token_ids, label, mask, pos, vm, qid))
+        else:
+            pass
             
-            elif len(line) == 4:  # for dbqa
-                qid=int(line[columns["qid"]])
-                label = int(line[columns["label"]])
-                text_a, text_b = line[columns["text_a"]], line[columns["text_b"]]
-                text = CLS_TOKEN + text_a + SEP_TOKEN + text_b + SEP_TOKEN
+        # except Exception as e:
+        #     print(sys.exc_info())
 
-                tokens, pos, vm, _ = kg.add_knowledge_with_vm([text], add_pad=True, max_length=args.seq_length)
-                tokens = tokens[0]
-                pos = pos[0]
-                vm = vm[0].astype("bool")
-
-                token_ids = [vocab.get(t) for t in tokens]
-                mask = []
-                seg_tag = 1
-                for t in tokens:
-                    if t == PAD_TOKEN:
-                        mask.append(0)
-                    else:
-                        mask.append(seg_tag)
-                    if t == SEP_TOKEN:
-                        seg_tag += 1
-                
-                dataset.append((token_ids, label, mask, pos, vm, qid))
-            else:
-                pass
-            
-        except:
-            print("Error line: ", line)
     return dataset
 
 
@@ -216,8 +221,8 @@ def main():
     parser.add_argument("--kg_name", required=True, help="KG name or path")
     parser.add_argument("--workers_num", type=int, default=1, help="number of process for loading dataset")
     parser.add_argument("--no_vm", action="store_true", help="Disable the visible_matrix")
-    parser.add_argument("--embedding_type", type=str,help="embedding type")
-    parser.add_argument("--embedding_folder_name", type=str,help="embedding folder name")
+    parser.add_argument("--embedding_type",default="Bert",type=str,help="embedding type")
+    parser.add_argument("--embedding_folder_name",default="chinese_wwm_ext_pytorch", type=str,help="embedding folder name")
 
     args = parser.parse_args()
 
