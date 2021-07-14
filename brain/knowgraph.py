@@ -7,20 +7,35 @@ import brain.config as config
 import pkuseg
 import numpy as np
 import jieba
+from enum import Enum
 
+from word_embedding_skip_gram import Word2Vec
+from word_vectors_Chinese_Word_Vectors import ChineseWordVector
+
+class Embedding(Enum):
+    Bert = auto()
+    ChineseWordVector = auto()
+    Word2Vec = auto()
 
 class KnowledgeGraph(object):
     """
     spo_files - list of Path of *.spo files, or default kg name. e.g., ['HowNet']
     """
 
-    def __init__(self, spo_files, predicate=False):
+    def __init__(self, spo_files, predicate=False, embedding_type:Embedding):
         self.predicate = predicate
         self.spo_file_paths = [config.KGS.get(f, f) for f in spo_files]
         self.lookup_table = self._create_lookup_table()
         self.segment_vocab = list(self.lookup_table.keys()) + config.NEVER_SPLIT_TAG
         self.tokenizer = pkuseg.pkuseg(model_name="default", postag=False, user_dict=self.segment_vocab)
         self.special_tags = set(config.NEVER_SPLIT_TAG)
+        if embedding_type == Embedding.Bert:
+            self.embedding = BertEmbedding()
+        elif embedding_type == Embedding.ChineseWordVector:
+            self.embedding = ChineseWordVector('word_vectors/merge_sgns_bigram_char300.txt', 0)
+        else:
+            self.embedding = Word2Vector(spo_files)
+        # self.word_index_dic, self.inverse_word_dic, self.W1, self.W2 = self.create_word_embedding()
 
     def _create_lookup_table(self):
         lookup_table = {}
@@ -42,6 +57,7 @@ class KnowledgeGraph(object):
                         lookup_table[subj] = set([value])
         return lookup_table
 
+
     def add_knowledge_with_vm(self, sent_batch, max_entities=config.MAX_ENTITIES, add_pad=True, max_length=128):
         """
         input: sent_batch - list of sentences, e.g., ["abcd", "efgh"]
@@ -50,8 +66,8 @@ class KnowledgeGraph(object):
                 visible_matrix_batch - list of visible matrixs
                 seg_batch - list of segment tags
         """
-        # split_sent_batch = [self.tokenizer.cut(sent) for sent in sent_batch]
-        split_sent_batch = [self.jieba.cut(sent) for sent in sent_batch]
+        split_sent_batch = [self.tokenizer.cut(sent) for sent in sent_batch]
+        # split_sent_batch = [jieba.cut(sent) for sent in sent_batch]
         know_sent_batch = []
         position_batch = []
         visible_matrix_batch = []
@@ -67,7 +83,21 @@ class KnowledgeGraph(object):
             abs_idx_src = []
             for token in split_sent:
 
-                entities = list(self.lookup_table.get(token, []))[:max_entities]
+                # entities = list(self.lookup_table.get(token, []))[:max_entities]
+                entities = list(self.lookup_table.get(token, []))
+
+                #check similarity for entities
+                #get enetities > 0.5 similarity
+                tmp_entities = []
+                for entity in entities:
+                    similarity_score = self.embedding.similarity([token,entity])
+                    if 0.4 < similarity_score < 0.85:
+                        tmp_entities,append(entity)
+                if tmp_entities:
+                    entities = tmp_entities[:max_entiites]
+                elif entities:
+                    entities = entities[:max_entities]
+
                 sent_tree.append((token, entities))
 
                 if token in self.special_tags:
