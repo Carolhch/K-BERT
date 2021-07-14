@@ -216,6 +216,8 @@ def main():
     parser.add_argument("--kg_name", required=True, help="KG name or path")
     parser.add_argument("--workers_num", type=int, default=1, help="number of process for loading dataset")
     parser.add_argument("--no_vm", action="store_true", help="Disable the visible_matrix")
+    parser.add_argument("--embedding_type", type=str,help="embedding type")
+    parser.add_argument("--embedding_folder_name", type=str,help="embedding folder name")
 
     args = parser.parse_args()
 
@@ -297,7 +299,7 @@ def main():
     else:
         spo_files = [args.kg_name]
     # kg = KnowledgeGraph(spo_files=spo_files, predicate=True)
-    kg = KnowledgeGraph(spo_files=spo_files)
+    kg = KnowledgeGraph(spo_files=spo_files, embedding_type=args.embedding_type,folder_name=args.embedding_folder_name)
 
     def read_dataset(path, workers_num=1):
 

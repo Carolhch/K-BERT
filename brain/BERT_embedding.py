@@ -32,12 +32,8 @@ class BertEmbedding():
 			inputs_embedding.append(final_embedding)
 		return self.Get_cosine_similarity(inputs_embedding)
 
-	def get_model_dir(self,model_name):
-		this_dir = dirname(__file__)
-		return os.path.join(this_dir,'..',"models",model_name)
+
         
-
-
 	def Get_segement(self,len_):
 		return torch.tensor([[0] * len_])
 
@@ -79,8 +75,8 @@ class BertEmbedding():
 
 if __name__=="__main__":
 	BE = BertEmbedding()
-	input1 = '你好啊'
-	input2 = '妳好啊'
+	input1 = '皇后'
+	input2 = '國王'
 	ans = BE.similarity([input1,input2])
 	print(ans)
 
