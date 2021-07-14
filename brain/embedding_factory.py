@@ -6,7 +6,7 @@ import os
 
 class EmbeddingFactory():
     def __init__(self,embedding_type,folder_name):
-        self.embedding_type = self.init(embedding_type,folder_name)
+        self.embedding = self.init(embedding_type,folder_name)
 
     def init(self,embedding_type, folder_name):
         path = self.get_model_path(str(folder_name))
