@@ -70,9 +70,7 @@ class KnowledgeGraph(object):
         position_batch = []
         visible_matrix_batch = []
         seg_batch = []
-        print('INIT')
         for split_sent in split_sent_batch:
-            print('splited')
 
             # create tree
             sent_tree = []
@@ -84,14 +82,12 @@ class KnowledgeGraph(object):
             for sent_index, token in enumerate(split_sent):
 
                 # entities = list(self.lookup_table.get(token, []))[:max_entities]
-                print('Getting entities')
                 lookup_keys = self.lookup_table.keys()
                 lookuped_word = [word for word in lookup_keys if token in word]
                 entitiy_li = [self.lookup_table[x] for x in lookuped_word]
                 entities =[]
                 for li in entitiy_li:
                     entities.extend(li)
-                print('GOT entities')
 
 
                 #check similarity for entities
@@ -99,7 +95,6 @@ class KnowledgeGraph(object):
                 tmp_entities = []
                 pre_token = ''
                 post_token = ''
-                print('start comparing')
                 if sent_index > 0:
                     pre_token = split_sent[sent_index-1]
                 if sent_index < len(split_sent)-1:
@@ -108,9 +103,12 @@ class KnowledgeGraph(object):
                     similarity_score = 0
                     if pre_token:
                         similarity_score += self.embedding.similarity([pre_token,entity])*0.2
+                        print('pre token simi')
                     if post_token:
                         similarity_score += self.embedding.similarity([post_token,entity])*0.2
+                        print('post token simi')
                     similarity_score += self.embedding.similarity([token, entity])*0.6
+                    print('self token simi')
                     # similarity_score = self.embedding.similarity([token,entity])
                     if 0.3 < similarity_score < 0.85:
                         tmp_entities.append(entity)
@@ -118,8 +116,6 @@ class KnowledgeGraph(object):
                     entities = tmp_entities[:max_entities]
                 elif entities:
                     entities = entities[:max_entities]
-
-                print('done comparing')
 
                 sent_tree.append((token, entities))
 
