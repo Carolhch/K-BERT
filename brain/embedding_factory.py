@@ -11,9 +11,9 @@ class EmbeddingFactory():
     def init(self,embedding_type, folder_name):
         path = self.get_model_path(str(folder_name))
         if embedding_type == "Bert":
-            self.embedding = BertEmbedding(model_name=path)
+            return BertEmbedding(model_name=path)
         elif embedding_type == "ChineseWordVector":
-            self.embedding = ChineseWordVector('word_vectors/merge_sgns_bigram_char300.txt', 0)
+            return ChineseWordVector('word_vectors/merge_sgns_bigram_char300.txt', 0)
         # else:
         #     self.embedding = Word2Vec(spo_files)
 

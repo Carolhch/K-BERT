@@ -31,7 +31,7 @@ class KnowledgeGraph(object):
         self.segment_vocab = list(self.lookup_table.keys()) + config.NEVER_SPLIT_TAG
         self.tokenizer = pkuseg.pkuseg(model_name="default", postag=False, user_dict=self.segment_vocab)
         self.special_tags = set(config.NEVER_SPLIT_TAG)
-        self.embedding = EmbeddingFactory(embedding_type,folder_name).embedding_type
+        self.embedding = EmbeddingFactory(embedding_type,folder_name).embedding
         
 
     def _create_lookup_table(self):
