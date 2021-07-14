@@ -9,6 +9,11 @@ import numpy as np
 import jieba
 from enum import Enum
 
+import torch
+from transformers import BertTokenizer, BertModel
+from scipy.spatial.distance import cosine
+
+from Bert_embedding import BertEmbedding
 from word_embedding_skip_gram import Word2Vec
 from word_vectors_Chinese_Word_Vectors import ChineseWordVector
 
